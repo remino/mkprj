@@ -3,7 +3,7 @@
 
 # Generated using mkx 3.0.0: https://github.com/remino/mkx
 
-VERSION='1.0.0'
+VERSION='1.0.1'
 
 mkprj_main() {
 	trap _exit INT TERM
