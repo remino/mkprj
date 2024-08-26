@@ -1,0 +1,168 @@
+#!/usr/bin/env bash
+# mkprj
+
+# Generated using mkx 3.0.0: https://github.com/remino/mkx
+
+VERSION='1.0.0'
+
+mkprj_main() {
+	trap _exit INT TERM
+
+	E_ARGS=16
+	E_EXISTS=17
+	E_NOT_DIR=18
+	E_CANNOT_MKDIR=19
+	E_INVALID_DATE=20
+
+	SCRIPT_INV="$(basename "$0")"
+	SCRIPT_PATH="$(readlink -f "$0")"
+	SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
+
+	TEMPLATE_NAME=""
+
+	while getopts d:p:ht:v OPT; do
+		case $OPT in
+		d) PROJECT_DATE="$OPTARG" ;;
+		h) CMD=help ;;
+		p) PROJECTS_DIR="$OPTARG" ;;
+		t) TEMPLATE_NAME="$OPTARG" ;;
+		v) CMD=version ;;
+		*) _invalid_opt ;;
+		esac
+	done
+
+	shift "$((OPTIND - 1))"
+
+	[ $# -eq 0 ] && [ -z "$CMD" ] && CMD="help"
+	[ -z "$CMD" ] && CMD="process"
+
+	[ -z "$PROJECTS_DIR" ] && PROJECTS_DIR="."
+	[ -z "$TEMPLATES_DIR" ] && TEMPLATES_DIR="."
+
+	case "$CMD" in
+	help | process | version) "mkprj_$CMD" "$@" ;;
+	*) _invalid_cmd ;;
+	esac
+
+	_exit
+}
+
+mkprj_help() {
+	cat <<USAGE
+$SCRIPT_NAME $VERSION
+
+USAGE: $SCRIPT_INV [<options>] <prjname>
+
+Create a dated project directory.
+
+OPTIONS:
+
+	-d <yyyy-mm-dd>
+		Use <date> as the project date. Default is the current date.
+
+	-h
+		Show this help screen.
+
+	-p <path>
+		Directory containing project directories. Can also be set with PROJECTS_DIR.
+		If not set, defaults to the current directory.
+
+	-t <name>
+		Use <name> directory template. Can also be a full path.
+		Directory of templates must be set in TEMPLATES_DIR.
+		If not set, defaults to the current directory.
+
+	-v
+		Show script name and version number.
+
+ENVIRONMENT VARIABLES:
+
+	PROJECTS_DIR
+		Directory containing project directories. Default is the current directory.
+		Current value: ${PROJECTS_DIR:-.}
+
+	TEMPLATES_DIR
+		Directory containing project templates. Default is the current directory.
+		Current value: ${TEMPLATES_DIR:-.}
+
+USAGE
+}
+
+mkprj_process() {
+	if [ -n "$PROJECT_DATE" ]; then
+		date="$(date -j -f '%Y-%m-%d' "$PROJECT_DATE" +"%Y%m%d")" ||
+			_fatal "$E_INVALID_DATE" "Invalid date format: $PROJECT_DATE"
+	else
+		date="$(date +%Y%m%d)"
+	fi
+
+	prj_name="$1"
+	prj_dir="$PROJECTS_DIR/$date $prj_name"
+
+	if [ ! -d "$PROJECTS_DIR" ]; then
+		[ -e "$PROJECTS_DIR" ] &&
+			_fatal "$E_NOT_DIR" "Projects directory is not a directory: $PROJECTS_DIR"
+
+		mkdir -p "$PROJECTS_DIR" ||
+			_fatal "$E_CANNOT_MKDIR" "Failed to create projects directory: $PROJECTS_DIR"
+	fi
+
+	[ -e "$prj_dir" ] &&
+		_fatal "$E_EXISTS" "Project directory or file already exists: $prj_dir"
+
+	if [ -n "$TEMPLATE_NAME" ]; then
+		template_dir="$TEMPLATES_DIR/$TEMPLATE_NAME"
+
+		[ -d "$template_dir" ] || template_dir="$TEMPLATE_NAME"
+
+		[ ! -d "$template_dir" ] &&
+			_fatal "$E_NOT_DIR" "Templates directory is not a directory or does not exist: $template_dir"
+
+		cp -r "$template_dir" "$prj_dir" ||
+			_fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+
+		return
+	fi
+
+	mkdir "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+}
+
+mkprj_version() {
+	_echo "$SCRIPT_NAME $VERSION"
+}
+
+_echo() {
+	echo "$@"
+}
+
+_error() {
+	_echo "$@" >&2
+}
+
+_exit() {
+	exit_code=$?
+	exit "$exit_code"
+}
+
+_fatal() {
+	exit_code="$1"
+	shift
+	_error "$@"
+	exit "$exit_code"
+}
+
+_invalid_cmd() {
+	_error "Invalid command: $CMD"
+	_echo
+	mkprj_help
+	exit "$E_ARGS"
+}
+
+_invalid_opt() {
+	_error "Invalid option: $OPT"
+	_echo
+	mkprj_help
+	exit "$E_ARGS"
+}
+
+mkprj_main "$@"
