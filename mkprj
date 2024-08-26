@@ -36,8 +36,8 @@ mkprj_main() {
 	[ $# -eq 0 ] && [ -z "$CMD" ] && CMD="help"
 	[ -z "$CMD" ] && CMD="process"
 
-	[ -z "$PROJECTS_DIR" ] && PROJECTS_DIR="."
-	[ -z "$TEMPLATES_DIR" ] && TEMPLATES_DIR="."
+	[ -z "$PROJECTS_DIR" ] && PROJECTS_DIR="$(pwd)"
+	[ -z "$TEMPLATES_DIR" ] && TEMPLATES_DIR="$(pwd)"
 
 	case "$CMD" in
 	help | process | version) "mkprj_$CMD" "$@" ;;
@@ -120,11 +120,11 @@ mkprj_process() {
 
 		cp -r "$template_dir" "$prj_dir" ||
 			_fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
-
-		return
+	else
+		mkdir "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
 	fi
 
-	mkdir "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+	_echo "$prj_dir"
 }
 
 mkprj_version() {

@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
 setup() {
+	export PROJECTS_DIR=
+	export TEMPLATES_DIR=
+
 	TMP_DIR="$( mktemp -dt mkprj )"
 
 	mkdir -p "$TMP_DIR/projects/"
@@ -40,6 +43,7 @@ teardown() {
 	run "$SCRIPT_PATH/mkprj" test
 
 	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/$date test" ]
 	[ -d "$TMP_DIR/$date test" ]
 
 	cd - >/dev/null
@@ -51,6 +55,7 @@ teardown() {
 	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
 
 	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 }
 
@@ -61,6 +66,7 @@ teardown() {
 	run ./mkprj -d "$date" test
 
 	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 }
 
@@ -70,6 +76,7 @@ teardown() {
 	run ./mkprj -d "$date" -p "$TMP_DIR/projects" -t "$TMP_DIR/templates/blank" test
 
 	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 	[ -f "$TMP_DIR/projects/20201231 test/hello.txt" ]
 }
@@ -81,6 +88,7 @@ teardown() {
 	run ./mkprj -d "$date" -p "$TMP_DIR/projects" -t blank test
 
 	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 	[ -f "$TMP_DIR/projects/20201231 test/hello.txt" ]
 }
