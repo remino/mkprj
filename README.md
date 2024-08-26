@@ -4,7 +4,7 @@ mkprj
 By Rémino Rem <https://remino.net/>. [ISC License.](LICENSE.txt)
 
 ```
-mkprj 1.0.0
+mkprj 1.0.1
 
 USAGE: mkprj [<options>] <prjname>
 
