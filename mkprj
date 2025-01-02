@@ -125,6 +125,19 @@ mkprj_process() {
 		mkdir -p "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
 	fi
 
+	if [ -x "$prj_dir/.mkprj/setup" ]; then
+		export PROJECT_DIR="$prj_dir"
+		export PROJECT_NAME="$prj_name"
+		export PROJECT_DATE="$(date -j -f '%Y%m%d' "$date" +"%Y-%m-%d")"
+		export PROJECTS_DIR
+		export TEMPLATES_DIR
+
+		(
+			cd "$prj_dir" || exit "$?"
+			.mkprj/setup
+		)
+	fi
+
 	_echo "$prj_dir"
 }
 

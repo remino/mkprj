@@ -108,3 +108,39 @@ teardown() {
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 	[ -f "$TMP_DIR/projects/20201231 test/notes.txt" ]
 }
+
+@test "runs setup script in project directory if it exists" {
+	local date="2020-12-31"
+	local confdir="$TMP_DIR/templates/default/.mkprj"
+	local setup="$confdir/setup"
+
+	export TEMPLATES_DIR="$TMP_DIR/templates"
+
+	mkdir -p "$confdir"
+	mkdir -p "$TMP_DIR/templates/default"
+	cat <<SH >"$setup"
+#!/bin/sh
+touch done.txt
+echo "PROJECT_DIR=\"\$PROJECT_DIR\""
+echo "PROJECT_NAME=\"\$PROJECT_NAME\""
+echo "PROJECT_DATE=\"\$PROJECT_DATE\""
+echo "PROJECTS_DIR=\"\$PROJECTS_DIR\""
+echo "TEMPLATES_DIR=\"\$TEMPLATES_DIR\""
+SH
+
+	chmod +x "$setup"
+
+	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
+
+	echo "$output"
+
+	[ "$status" -eq 0 ]
+	[ -d "$TMP_DIR/projects/20201231 test" ]
+	[ -f "$TMP_DIR/projects/20201231 test/done.txt" ]
+	[ "${lines[0]}" = "PROJECT_DIR=\"$TMP_DIR/projects/20201231 test\"" ]
+	[ "${lines[1]}" = "PROJECT_NAME=\"test\"" ]
+	[ "${lines[2]}" = "PROJECT_DATE=\"2020-12-31\"" ]
+	[ "${lines[3]}" = "PROJECTS_DIR=\"$TMP_DIR/projects\"" ]
+	[ "${lines[4]}" = "TEMPLATES_DIR=\"$TMP_DIR/templates\"" ]
+	[ "${lines[5]}" = "$TMP_DIR/projects/20201231 test" ]
+}
