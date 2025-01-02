@@ -18,8 +18,6 @@ mkprj_main() {
 	SCRIPT_PATH="$(readlink -f "$0")"
 	SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
 
-	TEMPLATE_NAME=""
-
 	while getopts d:p:ht:v OPT; do
 		case $OPT in
 		d) PROJECT_DATE="$OPTARG" ;;
