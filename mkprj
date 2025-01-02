@@ -122,7 +122,7 @@ mkprj_process() {
 		cp -r "$template_dir" "$prj_dir" ||
 			_fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
 	else
-		mkdir "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+		mkdir -p "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
 	fi
 
 	_echo "$prj_dir"
