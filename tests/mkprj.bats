@@ -92,3 +92,19 @@ teardown() {
 	[ -d "$TMP_DIR/projects/20201231 test" ]
 	[ -f "$TMP_DIR/projects/20201231 test/hello.txt" ]
 }
+
+@test "generates project directory from default template if it exists" {
+	local date="2020-12-31"
+
+	export TEMPLATES_DIR="$TMP_DIR/templates"
+
+	mkdir -p "$TMP_DIR/templates/default"
+	touch "$TMP_DIR/templates/default/notes.txt"
+
+	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
+
+	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
+	[ -d "$TMP_DIR/projects/20201231 test" ]
+	[ -f "$TMP_DIR/projects/20201231 test/notes.txt" ]
+}
