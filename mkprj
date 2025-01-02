@@ -109,6 +109,8 @@ mkprj_process() {
 	[ -e "$prj_dir" ] &&
 		_fatal "$E_EXISTS" "Project directory or file already exists: $prj_dir"
 
+	[ -z "$TEMPLATE_NAME" ] && [ -d "$TEMPLATES_DIR/default" ] && TEMPLATE_NAME=default
+
 	if [ -n "$TEMPLATE_NAME" ]; then
 		template_dir="$TEMPLATES_DIR/$TEMPLATE_NAME"
 
