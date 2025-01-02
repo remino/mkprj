@@ -35,7 +35,8 @@ mkprj_main() {
 	[ -z "$CMD" ] && CMD="process"
 
 	[ -z "$PROJECTS_DIR" ] && PROJECTS_DIR="$(pwd)"
-	[ -z "$TEMPLATES_DIR" ] && TEMPLATES_DIR="$(pwd)"
+	[ -z "$TEMPLATES_DIR" ] &&
+		TEMPLATES_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/mkprj/templates"
 
 	case "$CMD" in
 	help | process | version) "mkprj_$CMD" "$@" ;;
