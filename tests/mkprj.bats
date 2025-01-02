@@ -4,7 +4,7 @@ setup() {
 	export PROJECTS_DIR=
 	export TEMPLATES_DIR=
 
-	TMP_DIR="$( mktemp -dt mkprj )"
+	TMP_DIR="$(mktemp -dt mkprj)"
 
 	mkdir -p "$TMP_DIR/projects/"
 	mkdir -p "$TMP_DIR/otherdir/"
@@ -18,7 +18,7 @@ teardown() {
 }
 
 @test "shows version" {
-	local version="$( grep VERSION ./mkprj | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+' )"
+	local version="$(grep VERSION ./mkprj | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')"
 
 	run ./mkprj -v
 
@@ -34,7 +34,7 @@ teardown() {
 }
 
 @test "generates project directory based on today's date in current directory" {
-	local date="$( date +%Y%m%d )"
+	local date="$(date +%Y%m%d)"
 
 	export SCRIPT_PATH="$(pwd)"
 
