@@ -18,11 +18,12 @@ mkprj_main() {
 	SCRIPT_PATH="$(readlink -f "$0")"
 	SCRIPT_NAME="$(basename "$SCRIPT_PATH")"
 
-	while getopts d:p:ht:v OPT; do
+	DRY_RUN=0
+
+	while getopts hnt:v OPT; do
 		case $OPT in
-		d) PROJECT_DATE="$OPTARG" ;;
 		h) CMD=help ;;
-		p) PROJECTS_DIR="$OPTARG" ;;
+		n) DRY_RUN=1 ;;
 		t) TEMPLATE_NAME="$OPTARG" ;;
 		v) CMD=version ;;
 		*) _invalid_opt ;;
@@ -54,17 +55,21 @@ USAGE: $SCRIPT_INV [<options>] <prjname>
 
 Create a dated project directory.
 
-OPTIONS:
+When <prjname> is not prefixed by a date (in YYYY-MM-DD or YYYYMMDD format),
+the current date will be added.
 
-	-d <yyyy-mm-dd>
-		Use <date> as the project date. Default is the current date.
+When <prjname> is only a name, it will be created in the PROJECTS_DIR directory,
+or if it is not set, in the current directory.
+
+If <prjname> is a path, it will be created in that set path.
+
+OPTIONS:
 
 	-h
 		Show this help screen.
 
-	-p <path>
-		Directory containing project directories. Can also be set with PROJECTS_DIR.
-		If not set, defaults to the current directory.
+	-n
+		Dry run. Output path that would be created.
 
 	-t <name>
 		Use <name> directory template. Can also be a full path.
@@ -88,54 +93,65 @@ USAGE
 }
 
 mkprj_process() {
-	if [ -n "$PROJECT_DATE" ]; then
-		date="$(date -j -f '%Y-%m-%d' "$PROJECT_DATE" +"%Y%m%d")" ||
-			_fatal "$E_INVALID_DATE" "Invalid date format: $PROJECT_DATE"
-	else
-		date="$(date +%Y%m%d)"
+	prj_name="$1"
+
+	if echo "$prj_name" | grep -q '/'; then
+		PROJECTS_DIR="$(dirname "$prj_name")"
+		prj_name="$(basename "$prj_name")"
 	fi
 
-	prj_name="$1"
+	if echo "$prj_name" | grep -q -E '^[0-9]{4}-[0-9]{2}-[0-9]{2} '; then
+		date="${prj_name:0:4}${prj_name:5:2}${prj_name:8:2}"
+		prj_name="${prj_name:11}"
+	elif echo "$prj_name" | grep -q -E '^[0-9]{8} '; then
+		date="${prj_name:0:8}"
+		prj_name="${prj_name:9}"
+	else
+		date="$(date +"%Y%m%d")"
+	fi
+
 	prj_dir="$PROJECTS_DIR/$date $prj_name"
 
-	if [ ! -d "$PROJECTS_DIR" ]; then
-		[ -e "$PROJECTS_DIR" ] &&
-			_fatal "$E_NOT_DIR" "Projects directory is not a directory: $PROJECTS_DIR"
+	if [ $DRY_RUN -eq 0 ]; then
+		if [ ! -d "$PROJECTS_DIR" ]; then
+			[ -e "$PROJECTS_DIR" ] &&
+				_fatal "$E_NOT_DIR" "Projects directory is not a directory: $PROJECTS_DIR"
 
-		mkdir -p "$PROJECTS_DIR" ||
-			_fatal "$E_CANNOT_MKDIR" "Failed to create projects directory: $PROJECTS_DIR"
-	fi
+			mkdir -p "$PROJECTS_DIR" ||
+				_fatal "$E_CANNOT_MKDIR" "Failed to create projects directory: $PROJECTS_DIR"
+		fi
 
-	[ -e "$prj_dir" ] &&
-		_fatal "$E_EXISTS" "Project directory or file already exists: $prj_dir"
+		[ -e "$prj_dir" ] &&
+			_fatal "$E_EXISTS" "Project directory or file already exists: $prj_dir"
 
-	[ -z "$TEMPLATE_NAME" ] && [ -d "$TEMPLATES_DIR/default" ] && TEMPLATE_NAME=default
+		[ -z "$TEMPLATE_NAME" ] && [ -d "$TEMPLATES_DIR/default" ] && TEMPLATE_NAME=default
 
-	if [ -n "$TEMPLATE_NAME" ]; then
-		template_dir="$TEMPLATES_DIR/$TEMPLATE_NAME"
+		if [ -n "$TEMPLATE_NAME" ]; then
+			template_dir="$TEMPLATES_DIR/$TEMPLATE_NAME"
 
-		[ -d "$template_dir" ] || template_dir="$TEMPLATE_NAME"
+			[ -d "$template_dir" ] || template_dir="$TEMPLATE_NAME"
 
-		[ ! -d "$template_dir" ] &&
-			_fatal "$E_NOT_DIR" "Templates directory is not a directory or does not exist: $template_dir"
+			[ ! -d "$template_dir" ] &&
+				_fatal "$E_NOT_DIR" "Templates directory is not a directory or does not exist: $template_dir"
 
-		cp -r "$template_dir" "$prj_dir" ||
-			_fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
-	else
-		mkdir -p "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
-	fi
+			cp -r "$template_dir" "$prj_dir" ||
+				_fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+		else
+			mkdir -p "$prj_dir" || _fatal "$E_CANNOT_MKDIR" "Failed to create project directory: $prj_dir"
+		fi
 
-	if [ -x "$prj_dir/.mkprj/setup" ]; then
-		export PROJECT_DIR="$prj_dir"
-		export PROJECT_NAME="$prj_name"
-		export PROJECT_DATE="$(date -j -f '%Y%m%d' "$date" +"%Y-%m-%d")"
-		export PROJECTS_DIR
-		export TEMPLATES_DIR
+		if [ -x "$prj_dir/.mkprj/setup" ]; then
+			export PROJECT_DIR="$prj_dir"
+			export PROJECT_NAME="$prj_name"
+			export PROJECT_DATE="$(date -j -f '%Y%m%d' "$date" +"%Y-%m-%d")"
+			export PROJECTS_DIR
+			export TEMPLATES_DIR
 
-		(
-			cd "$prj_dir" || exit "$?"
-			.mkprj/setup
-		)
+			(
+				cd "$prj_dir" || exit "$?"
+				.mkprj/setup
+			)
+		fi
 	fi
 
 	_echo "$prj_dir"

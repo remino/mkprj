@@ -52,7 +52,7 @@ teardown() {
 @test "generates project directory based on a specified date in projects directory specified in arguments" {
 	local date="2020-12-31"
 
-	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
+	run ./mkprj "$TMP_DIR/projects/$date test"
 
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
@@ -63,7 +63,7 @@ teardown() {
 	local date="2020-12-31"
 
 	export PROJECTS_DIR="$TMP_DIR/projects"
-	run ./mkprj -d "$date" test
+	run ./mkprj "$date test"
 
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
@@ -73,7 +73,7 @@ teardown() {
 @test "generates project directory using a template specified by full path" {
 	local date="2020-12-31"
 
-	run ./mkprj -d "$date" -p "$TMP_DIR/projects" -t "$TMP_DIR/templates/blank" test
+	run ./mkprj -t "$TMP_DIR/templates/blank" "$TMP_DIR/projects/$date test"
 
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
@@ -85,7 +85,7 @@ teardown() {
 	local date="2020-12-31"
 
 	export TEMPLATES_DIR="$TMP_DIR/templates"
-	run ./mkprj -d "$date" -p "$TMP_DIR/projects" -t blank test
+	run ./mkprj -t blank "$TMP_DIR/projects/$date test"
 
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
@@ -101,7 +101,7 @@ teardown() {
 	mkdir -p "$TMP_DIR/templates/default"
 	touch "$TMP_DIR/templates/default/notes.txt"
 
-	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
+	run ./mkprj "$TMP_DIR/projects/$date test"
 
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
@@ -130,7 +130,7 @@ SH
 
 	chmod +x "$setup"
 
-	run ./mkprj -d "$date" -p "$TMP_DIR/projects" test
+	run ./mkprj "$TMP_DIR/projects/$date test"
 
 	echo "$output"
 
@@ -143,4 +143,31 @@ SH
 	[ "${lines[3]}" = "PROJECTS_DIR=\"$TMP_DIR/projects\"" ]
 	[ "${lines[4]}" = "TEMPLATES_DIR=\"$TMP_DIR/templates\"" ]
 	[ "${lines[5]}" = "$TMP_DIR/projects/20201231 test" ]
+}
+
+@test "dry run outputs path of directory to be created" {
+	local date="2020-12-31"
+
+	run ./mkprj -n "$TMP_DIR/projects/$date test"
+
+	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
+}
+
+@test "dry run does not created directory" {
+	local date="2020-12-31"
+
+	run ./mkprj -n "$TMP_DIR/projects/$date test"
+
+	[ "$status" -eq 0 ]
+	[ ! -d "$TMP_DIR/projects/20201231 test" ]
+}
+
+@test "works with short date format (YYYYMMDD)" {
+	local date="20201231"
+
+	run ./mkprj -n "$TMP_DIR/projects/$date test"
+
+	[ "$status" -eq 0 ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 }
