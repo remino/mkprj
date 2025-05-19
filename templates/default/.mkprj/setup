@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
 
-echo "# $PROJECT_NAME" >"$PROJECT_NAME.md"
+echo "# $PROJECT_DATE $PROJECT_NAME" >"$(basename "$PROJECT_DIR").md"
