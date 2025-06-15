@@ -39,3 +39,11 @@ ENVIRONMENT VARIABLES:
 		Directory containing project templates. Default is the current directory.
 		Current value: .
 ```
+
+## Tests
+
+Use [Bats](https://bats-core.readthedocs.io/) to run the tests:
+
+```sh
+bats tests
+```
