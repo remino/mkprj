@@ -171,3 +171,17 @@ SH
 	[ "$status" -eq 0 ]
 	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
 }
+
+@test "shows error when project directory already exists" {
+	bats_require_minimum_version 1.5.0
+
+	local date="20201231"
+	local E_EXISTS=17
+
+	run ./mkprj "$TMP_DIR/projects/$date test"
+	run --separate-stderr ./mkprj "$TMP_DIR/projects/$date test"
+
+	[ "$status" -eq $E_EXISTS ]
+	[ "$output" = "$TMP_DIR/projects/20201231 test" ]
+	[ "$stderr" = "Project directory or file already exists." ]
+}

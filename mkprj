@@ -121,8 +121,10 @@ mkprj_process() {
 				_fatal "$E_CANNOT_MKDIR" "Failed to create projects directory: $PROJECTS_DIR"
 		fi
 
-		[ -e "$prj_dir" ] &&
-			_fatal "$E_EXISTS" "Project directory or file already exists: $prj_dir"
+		if [ -e "$prj_dir" ]; then
+			_echo "$prj_dir"
+			_fatal "$E_EXISTS" "Project directory or file already exists."
+		fi
 
 		[ -z "$TEMPLATE_NAME" ] && [ -d "$TEMPLATES_DIR/default" ] && TEMPLATE_NAME=default
 
