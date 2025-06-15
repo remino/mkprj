@@ -1,5 +1,4 @@
-mkprj
-=====
+# mkprj
 
 By Rémino Rem <https://remino.net/>. [ISC License.](LICENSE.txt)
 
