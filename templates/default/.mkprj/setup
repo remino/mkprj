@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-echo "# $PROJECT_DATE $PROJECT_NAME" >"$(basename "$PROJECT_DIR").md"
